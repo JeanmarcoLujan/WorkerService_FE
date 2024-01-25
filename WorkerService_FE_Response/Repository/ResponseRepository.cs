@@ -1,29 +1,23 @@
-﻿using Microsoft.Extensions.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using WorkerService_FE_Request.Repository.Interfaces;
+using WorkerService_FE_Entities.Response;
+using WorkerService_FE_Response.Repository.Interfaces;
 
-namespace WorkerService_FE_Request.Repository
+namespace WorkerService_FE_Response.Repository
 {
-    public class RequestRepository : IRequestRepository
+    public class ResponseRepository : IResponseRepository
     {
-        private readonly IConfiguration _configuration;
-        public RequestRepository(IConfiguration configuration)
-        {
-            _configuration = configuration;
-        }
-
-        public void SendDocuement()
+        public ResultReponse GetResult()
         {
             string fileName = Path.GetFileName(@"C:\fe\factura_ejemplo.xml");
             string content1 = System.IO.File.ReadAllText(@"C:\fe\factura_ejemplo.xml");
             string str1 = "voxelcaribetest";
             string str2 = "Voxelcaribe01@";
-            string requestUri = "https://fileconnector.voxelgroup.net/outbox/" + fileName;
+            string requestUri = "https://fileconnector.voxelgroup.net/inbox/E310000396466.json";// + fileName;
             using (HttpClient httpClient = new HttpClient())
             {
                 string base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(str1 + ":" + str2));
@@ -31,7 +25,7 @@ namespace WorkerService_FE_Request.Repository
                 StringContent content2 = new StringContent(content1, Encoding.UTF8, "application/xml");
                 try
                 {
-                    HttpResponseMessage result1 = httpClient.PutAsync(requestUri, (HttpContent)content2).Result;
+                    HttpResponseMessage result1 = httpClient.GetAsync(requestUri).Result;
                     //ParamsOfResult oParamsOfResult = new ParamsOfResult();
                     //string xml = System.IO.File.ReadAllText(oPath);
                     //XmlDocument xmlDocument = new XmlDocument();
@@ -58,6 +52,7 @@ namespace WorkerService_FE_Request.Repository
                 {
                 }
             }
+            return null;
         }
     }
 }

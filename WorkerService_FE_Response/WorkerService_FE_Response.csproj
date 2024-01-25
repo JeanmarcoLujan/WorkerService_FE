@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WorkerService_FE_Entities\WorkerService_FE_Entities.csproj" />
+  </ItemGroup>
+
 </Project>

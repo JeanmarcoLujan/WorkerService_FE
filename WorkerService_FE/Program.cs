@@ -1,5 +1,9 @@
 using System.Reflection;
 using WorkerService_FE;
+using WorkerService_FE_Request.Repository;
+using WorkerService_FE_Request.Repository.Interfaces;
+using WorkerService_FE_Response.Repository;
+using WorkerService_FE_Response.Repository.Interfaces;
 
 //IHost host = Host.CreateDefaultBuilder(args)
 //    .ConfigureServices(services =>
@@ -27,6 +31,8 @@ IHost host = Host.CreateDefaultBuilder(args)
         //services.AddSingleton<ISlRepository, SlRepository>();
         //services.AddSingleton<IAfipRepository, AfipRepository>();
         //services.AddSingleton<ILoggingRepository, LoggingRepository>();
+        services.AddSingleton<IRequestRepository, RequestRepository>();
+        services.AddSingleton<IResponseRepository, ResponseRepository>();
 
         //services.AddHttpClient();
 

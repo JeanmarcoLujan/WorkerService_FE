@@ -8,5 +8,6 @@ namespace WorkerService_FE_Request.Repository.Interfaces
 {
     public interface IRequestRepository
     {
+        public void SendDocuement();
     }
 }

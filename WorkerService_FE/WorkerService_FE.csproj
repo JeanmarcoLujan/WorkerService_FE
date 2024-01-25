@@ -11,4 +11,9 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkerService_FE_Request\WorkerService_FE_Request.csproj" />
+    <ProjectReference Include="..\WorkerService_FE_Response\WorkerService_FE_Response.csproj" />
+  </ItemGroup>
 </Project>
