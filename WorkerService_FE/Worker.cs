@@ -22,8 +22,14 @@ namespace WorkerService_FE
             {
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
+
+                _requestRepository.GetDocumentSAP();
+
                 _requestRepository.SendDocuement();
-                _responseRepository.GetResult();
+
+
+                //_requestRepository.SendDocuement();
+                //_responseRepository.GetResult();
 
                 await Task.Delay(1000, stoppingToken);
             }

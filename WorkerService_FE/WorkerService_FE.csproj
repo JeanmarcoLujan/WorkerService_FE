@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-WorkerService_FE-84CF7086-3D31-481F-9472-7CEF11F1075C</UserSecretsId>
@@ -15,5 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\WorkerService_FE_Request\WorkerService_FE_Request.csproj" />
     <ProjectReference Include="..\WorkerService_FE_Response\WorkerService_FE_Response.csproj" />
+    <ProjectReference Include="..\WorkerService_FE_SL\WorkerService_FE_SL.csproj" />
   </ItemGroup>
 </Project>
