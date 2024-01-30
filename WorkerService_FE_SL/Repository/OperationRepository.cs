@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,6 +11,11 @@ namespace WorkerService_FE_SL.Repository
 {
     public class OperationRepository : IOperationRepository
     {
+        private readonly IConfiguration _configuration;
+        public OperationRepository(IConfiguration configuration)
+        {
+                _configuration = configuration;
+        }
         public HttpWebResponse PostInfo(string obj, string document, string route)
         {
             throw new NotImplementedException();
@@ -25,8 +31,8 @@ namespace WorkerService_FE_SL.Repository
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13 | SecurityProtocolType.Tls;
 
 
-                //string data = "{    \"CompanyDB\": \"" +  ConfigurationManager.AppSettings["CompanyDB"].ToString() + "\",  \"UserName\": \"" + ConfigurationManager.AppSettings["UserName"].ToString() + "\", \"Password\": \"" + ConfigurationManager.AppSettings["Password"].ToString() + "\", \"Language\":\"23\"}";
-                string data = "{    \"CompanyDB\": \"" + "LOCALIZACION_RDR" + "\",  \"UserName\": \"" + "manager" + "\", \"Password\": \"" + "1234" + "\", \"Language\":\"23\"}";
+                //string data = "{    \"CompanyDB\": \"" + "LOCALIZACION_RDR" + "\",  \"UserName\": \"" + "manager" + "\", \"Password\": \"" + "1234" + "\", \"Language\":\"23\"}";
+                string data = "{    \"CompanyDB\": \"" + _configuration["Acceso:DatabaseSAP"].ToString() + "\",  \"UserName\": \"" + _configuration["Acceso:UserSAP"].ToString() + "\", \"Password\": \"" + _configuration["Acceso:PassSAP"].ToString() + "\", \"Language\":\"23\"}";
 
                 var httpWebRequest = (HttpWebRequest)WebRequest.Create(@"https://saphaargendemo:50000/b1s/v2/" + "Login");
                 httpWebRequest.ContentType = "application/json";

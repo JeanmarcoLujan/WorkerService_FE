@@ -9,7 +9,7 @@ namespace WorkerService_FE_Request.Repository.Interfaces
 {
     public interface IRequestRepository
     {
-        public void SendDocuement();
-        public void GetDocumentSAP();
+        public void SendDocuement(string token);
+        public int GetDocumentSAP();
     }
 }

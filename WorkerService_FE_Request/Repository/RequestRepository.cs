@@ -1,19 +1,25 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using Sap.Data.Hana;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Xml.Serialization;
 using WorkerService_FE_Entities.Request.Document;
+using WorkerService_FE_Entities.ServiceLayer;
+using WorkerService_FE_Entities.ServiceLayer.Document;
 using WorkerService_FE_Request.Repository.Interfaces;
+using WorkerService_FE_SL.Repository.Interfaces;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using DueDate = WorkerService_FE_Entities.Request.Document.DueDate;
 using Transaction = WorkerService_FE_Entities.Request.Document.Transaction;
@@ -23,12 +29,14 @@ namespace WorkerService_FE_Request.Repository
     public class RequestRepository : IRequestRepository
     {
         private readonly IConfiguration _configuration;
-        public RequestRepository(IConfiguration configuration)
+        private readonly IServicioRepository _servicioRepository;
+        public RequestRepository(IConfiguration configuration, IServicioRepository servicioRepository)
         {
             _configuration = configuration;
+            _servicioRepository = servicioRepository;
         }
 
-        public void GetDocumentSAP()
+        public int GetDocumentSAP()
         {
             HanaConnection selectConnection = new HanaConnection("Server=saphaargendemo:30015;UserID=B1ADMIN;Password=7SkyOne*YjllM2ZkYz;Current Schema=LOCALIZACION_RDR");
             HanaDataAdapter hanaDataAdapter = new HanaDataAdapter("CALL \"MGS_SP_GET_INVOICE\"", selectConnection);
@@ -36,6 +44,9 @@ namespace WorkerService_FE_Request.Repository
             hanaDataAdapter.Fill(dataSet, "DATASet");
 
             DataTable dataTable = dataSet.Tables[0];
+            string docEntry = "";
+
+            
 
             foreach (var data in dataTable.AsEnumerable().Select(row => new
             {
@@ -64,6 +75,8 @@ namespace WorkerService_FE_Request.Repository
                         var c6 = current["TipoIngreso"].ToString();
                         var c7 = current["TipoPago"].ToString();
                         var c8 = Convert.ToInt32(current["LinesPerPrint"]);
+
+                        docEntry = current["DocEntry"].ToString();
 
                         transaccion.GeneralData = new GeneralData()
                         {
@@ -193,8 +206,11 @@ namespace WorkerService_FE_Request.Repository
                
 
                 //var asdadasd = transaccion;
-                SerializarYGuardarXml(transaccion, @"C:\fe\request\" + dateTime.ToString("yyyyMMdd") +"_" + str + ".xml");
+                //SerializarYGuardarXml(transaccion, @"C:\fe\request\" + dateTime.ToString("yyyyMMdd") +"_" + str + ".xml");
+                SerializarYGuardarXml(transaccion, _configuration["Files:RouteRequest"].ToString()+ docEntry + "_" + dateTime.ToString("yyyyMMdd") +"_" + str + ".xml");
             }
+
+            return dataTable.Rows.Count;
 
         }
 
@@ -212,47 +228,142 @@ namespace WorkerService_FE_Request.Repository
             }
         }
 
-        public void SendDocuement()
+        public void SendDocuement(string token)
         {
-            string fileName = Path.GetFileName(@"C:\fe\factura_ejemplo.xml");
-            string content1 = System.IO.File.ReadAllText(@"C:\fe\factura_ejemplo.xml");
-            string str1 = "voxelcaribetest";
-            string str2 = "Voxelcaribe01@";
-            string requestUri = "https://fileconnector.voxelgroup.net/outbox/" + fileName;
-            using (HttpClient httpClient = new HttpClient())
+
+
+            //InfoRequest infoRequest = new InfoRequest();
+            //infoRequest.Token = token;
+            //DocBase docBase = new DocBase();
+            //docBase.U_MGS_FE_Estado = "DS";
+            //docBase.U_MGS_FE_RespEnvio = "Se envio con éxito";
+            //string json = JsonConvert.SerializeObject(docBase);
+            //infoRequest.Doc = json;
+            //infoRequest.Route = "Invoices(179)";
+
+            //_servicioRepository.UpdateInfo(infoRequest);
+
+
+            string path = _configuration["Files:RouteRequest"].ToString();
+            InfoRequest infoRequest = new InfoRequest();
+            if (Directory.Exists(path))
             {
-                string base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(str1 + ":" + str2));
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64String);
-                StringContent content2 = new StringContent(content1, Encoding.UTF8, "application/xml");
-                try
+                string[] files = Directory.GetFiles(path);
+                if (files.Length != 0)
                 {
-                    HttpResponseMessage result1 = httpClient.PutAsync(requestUri, (HttpContent)content2).Result;
-                    //ParamsOfResult oParamsOfResult = new ParamsOfResult();
-                    //string xml = System.IO.File.ReadAllText(oPath);
-                    //XmlDocument xmlDocument = new XmlDocument();
-                    //xmlDocument.LoadXml(xml);
-                    //oParamsOfResult.DocEntry = BusinessOneServices.GetDocEntry(xmlDocument);
-                    if (result1.IsSuccessStatusCode)
+                    infoRequest.Token = token;
+                    foreach (string oPath in files)
                     {
-                        string result2 = result1.Content.ReadAsStringAsync().Result;
-                        //oParamsOfResult.Estado = "DS";
-                        //oParamsOfResult.ResultDscrp = "Envío Correcto";
-                        //BusinessOneServices.SetResultInvoice(oParamsOfResult);
-                        //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\" + fileName);
+                        var ssd = oPath;
+                        string fileName = Path.GetFileName(oPath);
+                        string content1 = System.IO.File.ReadAllText(oPath);
+                        string str1 = _configuration["Voxel:User"].ToString(); 
+                        string str2 = _configuration["Voxel:Pass"].ToString();
+                        string requestUri = "https://fileconnector.voxelgroup.net/outbox/" + fileName;
+
+                        using (HttpClient httpClient = new HttpClient())
+                        {
+                            string base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(str1 + ":" + str2));
+                            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64String);
+                            StringContent content2 = new StringContent(content1, Encoding.UTF8, "application/xml");
+                            try
+                            {
+                                HttpResponseMessage result1 = httpClient.PutAsync(requestUri, (HttpContent)content2).Result;
+                                //ParamsOfResult oParamsOfResult = new ParamsOfResult();
+                                //string xml = System.IO.File.ReadAllText(oPath);
+                                //XmlDocument xmlDocument = new XmlDocument();
+                                //xmlDocument.LoadXml(xml);
+                                //oParamsOfResult.DocEntry = BusinessOneServices.GetDocEntry(xmlDocument);
+                                DocBase docBase = new DocBase();
+                                if (result1.IsSuccessStatusCode)
+                                {
+                                    string result2 = result1.Content.ReadAsStringAsync().Result;
+
+                                    string[] docE = fileName.Split('_');
+                                    
+                                    docBase.U_MGS_FE_Estado = "DS";
+                                    docBase.U_MGS_FE_RespEnvio = "Envío Correcto";
+
+                                    string json = JsonConvert.SerializeObject(docBase);
+                                    infoRequest.Doc = json;
+                                    infoRequest.Route = "Invoices("+ docE +")";
+
+                                    _servicioRepository.UpdateInfo(infoRequest);
+
+                                    //oParamsOfResult.Estado = "DS";
+                                    //oParamsOfResult.ResultDscrp = "Envío Correcto";
+                                    //BusinessOneServices.SetResultInvoice(oParamsOfResult);
+                                    System.IO.File.Move(path + fileName, path + "out\\" + fileName);
+                                }
+                                else
+                                {
+                                    string result3 = result1.Content.ReadAsStringAsync().Result;
+                                    //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\Error\\" + fileName);
+                                    System.IO.File.Move(path + fileName, path + "out\\" + fileName);
+                                    //oParamsOfResult.Estado = "DE";
+                                    //oParamsOfResult.ResultDscrp = result3;
+                                    //BusinessOneServices.SetResultInvoice(oParamsOfResult);
+
+                                    string[] docE = fileName.Split('_');
+
+                                    docBase.U_MGS_FE_Estado = "DE";
+                                    docBase.U_MGS_FE_RespEnvio = "Se presento error al enviar";
+
+                                    string json = JsonConvert.SerializeObject(docBase);
+                                    infoRequest.Doc = json;
+                                    infoRequest.Route = "Invoices(" + docE + ")";
+
+                                    _servicioRepository.UpdateInfo(infoRequest);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                            }
+                        }
                     }
-                    else
-                    {
-                        string result3 = result1.Content.ReadAsStringAsync().Result;
-                        //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\Error\\" + fileName);
-                        //oParamsOfResult.Estado = "DE";
-                        //oParamsOfResult.ResultDscrp = result3;
-                        //BusinessOneServices.SetResultInvoice(oParamsOfResult);
-                    }
-                }
-                catch (Exception ex)
-                {
                 }
             }
+
+
+            //string fileName1 = Path.GetFileName(@"C:\fe\factura_ejemplo.xml");
+            //string content11 = System.IO.File.ReadAllText(@"C:\fe\factura_ejemplo.xml");
+            //string str11 = "voxelcaribetest";
+            //string str21 = "Voxelcaribe01@";
+            //string requestUri1 = "https://fileconnector.voxelgroup.net/outbox/" + fileName1;
+            //using (HttpClient httpClient = new HttpClient())
+            //{
+            //    string base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(str1 + ":" + str2));
+            //    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64String);
+            //    StringContent content2 = new StringContent(content1, Encoding.UTF8, "application/xml");
+            //    try
+            //    {
+            //        HttpResponseMessage result1 = httpClient.PutAsync(requestUri, (HttpContent)content2).Result;
+            //        //ParamsOfResult oParamsOfResult = new ParamsOfResult();
+            //        //string xml = System.IO.File.ReadAllText(oPath);
+            //        //XmlDocument xmlDocument = new XmlDocument();
+            //        //xmlDocument.LoadXml(xml);
+            //        //oParamsOfResult.DocEntry = BusinessOneServices.GetDocEntry(xmlDocument);
+            //        if (result1.IsSuccessStatusCode)
+            //        {
+            //            string result2 = result1.Content.ReadAsStringAsync().Result;
+            //            //oParamsOfResult.Estado = "DS";
+            //            //oParamsOfResult.ResultDscrp = "Envío Correcto";
+            //            //BusinessOneServices.SetResultInvoice(oParamsOfResult);
+            //            //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\" + fileName);
+            //        }
+            //        else
+            //        {
+            //            string result3 = result1.Content.ReadAsStringAsync().Result;
+            //            //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\Error\\" + fileName);
+            //            //oParamsOfResult.Estado = "DE";
+            //            //oParamsOfResult.ResultDscrp = result3;
+            //            //BusinessOneServices.SetResultInvoice(oParamsOfResult);
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //    }
+            //}
         }
     }
 }

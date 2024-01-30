@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -13,19 +15,40 @@ namespace WorkerService_FE_SL.Repository
     public class ServicioRepository : IServicioRepository
     {
         private readonly IOperationRepository _operationRepository;
-        public ServicioRepository(IOperationRepository operationRepository)
+        private readonly IConfiguration _configuration;
+        public ServicioRepository(IOperationRepository operationRepository, IConfiguration configuration)
         {
-              _operationRepository = operationRepository;
+            _operationRepository = operationRepository;
+            _configuration = configuration;
         }
 
-        public Task<string> SLLogin()
+        public async Task<string> SLLogin()
         {
-            throw new NotImplementedException();
+            B1Session obj = null;
+            string rs = "";
+            try
+            {
+                using (var streamReader = new StreamReader(_operationRepository.PostLogin().GetResponseStream()))
+                {
+                    string result = streamReader.ReadToEnd();
+                    obj = JsonConvert.DeserializeObject<B1Session>(result);
+                    rs = obj.SessionId.ToString();
+
+                }
+            }
+            catch (Exception e)
+            {
+
+                rs = "";
+                //_logService.Log("Error al loguearse en SL :" + e.Message.ToString());
+            }
+
+            return rs;
         }
 
         public async Task<GeneralResponseDTO> UpdateInfo(InfoRequest infoRequest)
         {
-            string route = @"https://saphaargendemo:50000/b1s/v2/" + infoRequest.Route;
+            string route = _configuration["Acceso:ServiceLayerUrl"].ToString() + infoRequest.Route;
 
             GeneralResponseDTO documentResult = new GeneralResponseDTO();
             try
