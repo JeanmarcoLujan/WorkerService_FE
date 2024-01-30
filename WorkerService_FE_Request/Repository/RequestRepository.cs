@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Xml.Serialization;
+using WorkerService_FE_Entities.Repository.Interfaces;
 using WorkerService_FE_Entities.Request.Document;
 using WorkerService_FE_Entities.ServiceLayer;
 using WorkerService_FE_Entities.ServiceLayer.Document;
@@ -30,10 +31,12 @@ namespace WorkerService_FE_Request.Repository
     {
         private readonly IConfiguration _configuration;
         private readonly IServicioRepository _servicioRepository;
-        public RequestRepository(IConfiguration configuration, IServicioRepository servicioRepository)
+        private readonly ILogRepository _logRepository; 
+        public RequestRepository(IConfiguration configuration, IServicioRepository servicioRepository, ILogRepository logRepository)
         {
             _configuration = configuration;
             _servicioRepository = servicioRepository;
+            _logRepository = logRepository;
         }
 
         public int GetDocumentSAP()
@@ -286,9 +289,10 @@ namespace WorkerService_FE_Request.Repository
 
                                     string json = JsonConvert.SerializeObject(docBase);
                                     infoRequest.Doc = json;
-                                    infoRequest.Route = "Invoices("+ docE +")";
+                                    infoRequest.Route = "Invoices("+ docE[0] +")";
 
                                     _servicioRepository.UpdateInfo(infoRequest);
+                                    _logRepository.Log("Documento " + docE[0] + " Se ha enviado con éxito", 1);
 
                                     //oParamsOfResult.Estado = "DS";
                                     //oParamsOfResult.ResultDscrp = "Envío Correcto";
@@ -309,9 +313,11 @@ namespace WorkerService_FE_Request.Repository
                                     docBase.U_MGS_FE_Estado = "DE";
                                     docBase.U_MGS_FE_RespEnvio = "Se presento error al enviar";
 
+                                    _logRepository.Log("Documento " + docE[0] + " Se presento error al enviar", 1);
+
                                     string json = JsonConvert.SerializeObject(docBase);
                                     infoRequest.Doc = json;
-                                    infoRequest.Route = "Invoices(" + docE + ")";
+                                    infoRequest.Route = "Invoices(" + docE[0] + ")";
 
                                     _servicioRepository.UpdateInfo(infoRequest);
                                 }

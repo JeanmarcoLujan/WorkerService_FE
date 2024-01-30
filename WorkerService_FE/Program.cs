@@ -1,5 +1,7 @@
 using System.Reflection;
 using WorkerService_FE;
+using WorkerService_FE_Entities.Repository;
+using WorkerService_FE_Entities.Repository.Interfaces;
 using WorkerService_FE_Request.Repository;
 using WorkerService_FE_Request.Repository.Interfaces;
 using WorkerService_FE_Response.Repository;
@@ -21,7 +23,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     .UseWindowsService(options =>
     {
         // Configure the Windows Service Name.
-        options.ServiceName = "NXAFIPM.Demo";
+        options.ServiceName = "MGSFE.Demo";
     })
     .ConfigureServices(services =>
     {
@@ -37,6 +39,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IResponseRepository, ResponseRepository>();
         services.AddSingleton<IOperationRepository, OperationRepository>();
         services.AddSingleton<IServicioRepository, ServicioRepository>();
+        services.AddSingleton<ILogRepository, LogRepository>();
 
         //services.AddHttpClient();
 
