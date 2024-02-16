@@ -1,23 +1,104 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Sap.Data.Hana;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using WorkerService_FE_Entities.Repository.Interfaces;
 using WorkerService_FE_Entities.Response;
+using WorkerService_FE_Entities.ServiceLayer;
+using WorkerService_FE_Entities.ServiceLayer.Document;
 using WorkerService_FE_Response.Repository.Interfaces;
+using WorkerService_FE_SL.Repository.Interfaces;
 
 namespace WorkerService_FE_Response.Repository
 {
     public class ResponseRepository : IResponseRepository
     {
-        public ResultReponse GetResult()
+        private readonly IConfiguration _configuration;
+        private readonly IServicioRepository _servicioRepository;
+        private readonly ILogRepository _logRepository;
+        public ResponseRepository(IConfiguration configuration, IServicioRepository servicioRepository, ILogRepository logRepository)
         {
-            string fileName = Path.GetFileName(@"C:\fe\factura_ejemplo.xml");
-            string content1 = System.IO.File.ReadAllText(@"C:\fe\factura_ejemplo.xml");
-            string str1 = "voxelcaribetest";
-            string str2 = "Voxelcaribe01@";
-            string requestUri = "https://fileconnector.voxelgroup.net/inbox/E310000396466.json";// + fileName;
+            _configuration = configuration;
+            _servicioRepository = servicioRepository;
+            _logRepository = logRepository;
+        }
+        public List<NCFResponse> GetDocumentSeguimientoSAP()
+        {
+            List<NCFResponse> result = new List<NCFResponse>();
+           
+            string HANAConnectionString = _configuration["Acceso:ConnectionStringsSAP"];
+            HanaConnection conn = new HanaConnection(HANAConnectionString);
+            try
+            {
+
+                var asdasd = conn.State;
+
+                if (conn.State.Equals(ConnectionState.Closed))
+                {
+                    conn.Open();
+                    HanaCommand cmd = new HanaCommand("", conn);
+                    cmd.CommandText = "MGS_SP_FE"; 
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add("@vTipo", HanaDbType.NVarChar, 30).Value = "GET_DOCS_SEGUI";
+                    cmd.Parameters.Add("@vParam1", HanaDbType.NVarChar, 50).Value = "";
+                    cmd.Parameters.Add("@vParam2", HanaDbType.NVarChar, 50).Value = "";
+                    cmd.Parameters.Add("@vParam3", HanaDbType.NVarChar, 50).Value = "";
+                    cmd.Parameters.Add("@vParam4", HanaDbType.NVarChar, 50).Value = "";
+
+                    HanaDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        NCFResponse nCF = new NCFResponse();
+                        nCF.DocEntry = reader.GetString(reader.GetOrdinal("DocEntry")).ToString();
+                        nCF.NCF = reader.GetString(reader.GetOrdinal("NCF")).ToString();
+                        result.Add(nCF);
+                    }
+
+
+                    reader.Close();
+
+
+
+                    conn.Close();
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                if (conn.State.Equals(ConnectionState.Open))
+                    conn.Close();
+
+                result = null;
+
+            }
+
+            return result;
+        }
+
+        public ResultReponse GetResult(NCFResponse nCFResponse, string token)
+        {
+            //string fileName = Path.GetFileName(@"C:\fe\factura_ejemplo.xml");
+            string content1 = ""; //System.IO.File.ReadAllText(@"C:\fe\factura_ejemplo.xml");
+            //string str1 = "voxelcaribetest";
+            //string str2 = "Voxelcaribe01@";
+            string str1 = _configuration["Voxel:User"].ToString();
+            string str2 = _configuration["Voxel:Pass"].ToString();
+            //string requestUri = "https://fileconnector.voxelgroup.net/inbox/"+NCF+".json";// + fileName;
+            string requestUri = _configuration["Voxel:Url"] +"inbox/" + nCFResponse.NCF +".json";// + fileName;
+
+            ResultReponse resultReponse = new ResultReponse();
+            InfoRequest infoRequest = new InfoRequest();
+
             using (HttpClient httpClient = new HttpClient())
             {
                 string base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(str1 + ":" + str2));
@@ -31,9 +112,29 @@ namespace WorkerService_FE_Response.Repository
                     //XmlDocument xmlDocument = new XmlDocument();
                     //xmlDocument.LoadXml(xml);
                     //oParamsOfResult.DocEntry = BusinessOneServices.GetDocEntry(xmlDocument);
+                    DocBaseResponse docBase = new DocBaseResponse();
+                    infoRequest.Token = token;
+
                     if (result1.IsSuccessStatusCode)
                     {
                         string result2 = result1.Content.ReadAsStringAsync().Result;
+                        resultReponse = JsonConvert.DeserializeObject<ResultReponse>(result2);
+
+                        docBase.U_MGS_FE_Estado = resultReponse.DGII.EstatusDGII == "Rechazada" ? "DR" : "DA";
+                        docBase.U_MGS_FE_EstatusDGII = resultReponse.DGII.EstatusDGII;
+                        docBase.U_MGS_FE_MensajeDGII = resultReponse.DGII.MensajeDGII;
+                        docBase.U_MGS_FE_PDF = resultReponse.DGII.PDF;
+                        docBase.U_MGS_FE_QR = resultReponse.DGII.QR;
+                        docBase.U_MGS_FE_FechaFirma = resultReponse.DGII.FechaFirma.ToString("dd/MM/yyyy");
+                        docBase.U_MGS_FE_CodigoSeguridad = resultReponse.DGII.CodigoSeguridad;
+
+                        string json = JsonConvert.SerializeObject(docBase);
+                        infoRequest.Doc = json;
+                        infoRequest.Route = "Invoices(" + nCFResponse.DocEntry + ")";
+
+                        _servicioRepository.UpdateInfo(infoRequest);
+                        _logRepository.Log("Documento " + nCFResponse.DocEntry + " Se ha obtenido respuesta con éxito", 2);
+
                         //oParamsOfResult.Estado = "DS";
                         //oParamsOfResult.ResultDscrp = "Envío Correcto";
                         //BusinessOneServices.SetResultInvoice(oParamsOfResult);
@@ -42,6 +143,7 @@ namespace WorkerService_FE_Response.Repository
                     else
                     {
                         string result3 = result1.Content.ReadAsStringAsync().Result;
+                        _logRepository.Log("Documento " + nCFResponse.DocEntry + ", con NCF: " + nCFResponse.NCF + ", no se ha encontrado en voxel", 2);
                         //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\Error\\" + fileName);
                         //oParamsOfResult.Estado = "DE";
                         //oParamsOfResult.ResultDscrp = result3;
@@ -54,5 +156,6 @@ namespace WorkerService_FE_Response.Repository
             }
             return null;
         }
+
     }
 }

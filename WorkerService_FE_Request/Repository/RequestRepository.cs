@@ -235,18 +235,6 @@ namespace WorkerService_FE_Request.Repository
         {
 
 
-            //InfoRequest infoRequest = new InfoRequest();
-            //infoRequest.Token = token;
-            //DocBase docBase = new DocBase();
-            //docBase.U_MGS_FE_Estado = "DS";
-            //docBase.U_MGS_FE_RespEnvio = "Se envio con éxito";
-            //string json = JsonConvert.SerializeObject(docBase);
-            //infoRequest.Doc = json;
-            //infoRequest.Route = "Invoices(179)";
-
-            //_servicioRepository.UpdateInfo(infoRequest);
-
-
             string path = _configuration["Files:RouteRequest"].ToString();
             InfoRequest infoRequest = new InfoRequest();
             if (Directory.Exists(path))
@@ -262,7 +250,7 @@ namespace WorkerService_FE_Request.Repository
                         string content1 = System.IO.File.ReadAllText(oPath);
                         string str1 = _configuration["Voxel:User"].ToString(); 
                         string str2 = _configuration["Voxel:Pass"].ToString();
-                        string requestUri = "https://fileconnector.voxelgroup.net/outbox/" + fileName;
+                        string requestUri = _configuration["Voxel:Url"] + "outbox/" + fileName;
 
                         using (HttpClient httpClient = new HttpClient())
                         {

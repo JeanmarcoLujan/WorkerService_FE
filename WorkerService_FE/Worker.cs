@@ -34,10 +34,21 @@ namespace WorkerService_FE
                 if (token != "")
                 {
 
-                    
+
                     int docs = _requestRepository.GetDocumentSAP();
                     if (docs > 0)
                         _requestRepository.SendDocuement(token);
+
+
+
+
+                    foreach (NCFResponse item in _responseRepository.GetDocumentSeguimientoSAP())
+                    {
+                        _responseRepository.GetResult(item, token);
+                        //var asdf = item.ToString();
+                    }
+
+
                 }
 
 
