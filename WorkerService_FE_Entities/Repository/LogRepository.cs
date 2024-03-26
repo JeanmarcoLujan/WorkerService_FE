@@ -19,8 +19,13 @@ namespace WorkerService_FE_Entities.Repository
         {
             string route = flujo ==1 ? _configuration["Log:RouteRequest"] : _configuration["Log:RouteResponse"];  // ConfigurationManager.AppSettings["URL_AFIP_Log"];
 
+            if (!Directory.Exists(route))
+            {
+                Directory.CreateDirectory(route);
+            }
+
             // Creamos el archivo de log correspondiente al día de hoy
-            string logFilePath = Path.Combine(route, "MGS_FE "+ $"{DateTime.Today:yyyyMMdd}.log");
+            string logFilePath = Path.Combine(route+"\\", "MGS_FE "+ $"{DateTime.Today:yyyyMMdd}.log");
             using (StreamWriter sw = new StreamWriter(logFilePath, true))
             {
                 // Escribimos el mensaje en el archivo de log

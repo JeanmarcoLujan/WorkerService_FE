@@ -7,27 +7,33 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using WorkerService_FE_Entities.Repository.Interfaces;
+using WorkerService_FE_Entities.Request;
 using WorkerService_FE_Entities.Response;
 using WorkerService_FE_Entities.ServiceLayer;
 using WorkerService_FE_Entities.ServiceLayer.Document;
 using WorkerService_FE_Response.Repository.Interfaces;
 using WorkerService_FE_SL.Repository.Interfaces;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WorkerService_FE_Response.Repository
 {
     public class ResponseRepository : IResponseRepository
     {
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IServicioRepository _servicioRepository;
         private readonly ILogRepository _logRepository;
-        public ResponseRepository(IConfiguration configuration, IServicioRepository servicioRepository, ILogRepository logRepository)
+        public ResponseRepository(IConfiguration configuration, IServicioRepository servicioRepository, ILogRepository logRepository, IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _servicioRepository = servicioRepository;
             _logRepository = logRepository;
+            _httpClientFactory = httpClientFactory;
         }
         public List<NCFResponse> GetDocumentSeguimientoSAP()
         {
@@ -85,20 +91,26 @@ namespace WorkerService_FE_Response.Repository
             return result;
         }
 
-        public ResultReponse GetResult(NCFResponse nCFResponse, string token)
+        public async Task<ResultReponse> GetResult(NCFResponse nCFResponse, string token)
         {
             //string fileName = Path.GetFileName(@"C:\fe\factura_ejemplo.xml");
-            string content1 = ""; //System.IO.File.ReadAllText(@"C:\fe\factura_ejemplo.xml");
-            //string str1 = "voxelcaribetest";
-            //string str2 = "Voxelcaribe01@";
+            string content1 = ""; 
             string str1 = _configuration["Voxel:User"].ToString();
             string str2 = _configuration["Voxel:Pass"].ToString();
-            //string requestUri = "https://fileconnector.voxelgroup.net/inbox/"+NCF+".json";// + fileName;
-            string requestUri = _configuration["Voxel:Url"] +"inbox/" + nCFResponse.NCF +".json";// + fileName;
+            string requestUri = _configuration["Voxel:Url"] +"inbox/" + nCFResponse.NCF +".json";
 
             ResultReponse resultReponse = new ResultReponse();
             InfoRequest infoRequest = new InfoRequest();
 
+            string ruta = _configuration["Report:Ruta"].ToString()+"\\files";
+            if (Directory.Exists(ruta))
+            {
+                Directory.CreateDirectory(ruta);
+            }
+
+           //var asasd = GenerateQr();
+
+            var asdasd = "asdasd";
             using (HttpClient httpClient = new HttpClient())
             {
                 string base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(str1 + ":" + str2));
@@ -123,7 +135,18 @@ namespace WorkerService_FE_Response.Repository
                         docBase.U_MGS_FE_Estado = resultReponse.DGII.EstatusDGII == "Rechazada" ? "DR" : "DA";
                         docBase.U_MGS_FE_EstatusDGII = resultReponse.DGII.EstatusDGII;
                         docBase.U_MGS_FE_MensajeDGII = resultReponse.DGII.MensajeDGII;
-                        docBase.U_MGS_FE_PDF = resultReponse.DGII.PDF;
+                        bool result_v1 = await GenerateQr(nCFResponse.DocEntry.ToString(), resultReponse.DGII.QR, "1");
+                        if (result_v1)
+                            docBase.U_MGS_FE_PDF = ruta + "\\Factura_v1_" + nCFResponse.DocEntry.ToString() + ".pdf"; // resultReponse.DGII.PDF;
+                        else
+                            docBase.U_MGS_FE_PDF = "";
+                        bool result_v2 = await GenerateQr(nCFResponse.DocEntry.ToString(), resultReponse.DGII.QR, "2");
+                        if (result_v2)
+                            docBase.U_MGS_FE_PDF2 = ruta + "\\Factura_v2_" + nCFResponse.DocEntry.ToString() + ".pdf"; // resultReponse.DGII.PDF;
+                        else
+                            docBase.U_MGS_FE_PDF2 = "";
+
+
                         docBase.U_MGS_FE_QR = resultReponse.DGII.QR;
                         docBase.U_MGS_FE_FechaFirma = resultReponse.DGII.FechaFirma.ToString("dd/MM/yyyy");
                         docBase.U_MGS_FE_CodigoSeguridad = resultReponse.DGII.CodigoSeguridad;
@@ -134,7 +157,7 @@ namespace WorkerService_FE_Response.Repository
 
                         _servicioRepository.UpdateInfo(infoRequest);
                         _logRepository.Log("Documento " + nCFResponse.DocEntry + " Se ha obtenido respuesta con éxito", 2);
-
+                        
                         //oParamsOfResult.Estado = "DS";
                         //oParamsOfResult.ResultDscrp = "Envío Correcto";
                         //BusinessOneServices.SetResultInvoice(oParamsOfResult);
@@ -142,6 +165,8 @@ namespace WorkerService_FE_Response.Repository
                     }
                     else
                     {
+                        //GenerateQr();
+
                         string result3 = result1.Content.ReadAsStringAsync().Result;
                         _logRepository.Log("Documento " + nCFResponse.DocEntry + ", con NCF: " + nCFResponse.NCF + ", no se ha encontrado en voxel", 2);
                         //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\Error\\" + fileName);
@@ -155,6 +180,51 @@ namespace WorkerService_FE_Response.Repository
                 }
             }
             return null;
+        }
+
+
+        public async Task<bool> GenerateQr(string docEntry, string urlQr, string report)
+        {
+
+            //var client = new HttpClient();
+            //var request = new HttpRequestMessage(HttpMethod.Post, "https://localhost:44316/api/Report");
+            bool resultado = false;
+            try
+            {
+                ReportRequest re = new ReportRequest();
+                re.DocEntry = docEntry;
+                re.ObjectId = "13";
+                re.UrlQr = urlQr;
+                re.Report = report;
+                re.Ruta = _configuration["Report:Ruta"].ToString();
+
+                var client = _httpClientFactory.CreateClient("reportService");
+                string json = JsonConvert.SerializeObject(re);
+
+                var httpContenido = new StringContent(json, Encoding.UTF8, "application/json");
+               // var respuesta = await client.PostAsync($"api/Values", null);
+                var respuesta = await client.PostAsync($"api/Report", httpContenido);
+
+                if (respuesta.IsSuccessStatusCode)
+                {
+                    var content = await respuesta.Content.ReadAsStringAsync();
+                    ReportReponse reportReponse = JsonConvert.DeserializeObject<ReportReponse>(content);
+                    resultado = reportReponse.ValorRecibido;
+
+                }
+                else
+                {
+                    resultado = false;  
+                }
+
+            }
+            catch(Exception ex)
+            {
+                resultado = false;
+            }
+
+            return resultado;
+
         }
 
     }

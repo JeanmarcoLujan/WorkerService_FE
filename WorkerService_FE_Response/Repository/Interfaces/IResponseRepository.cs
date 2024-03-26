@@ -10,7 +10,7 @@ namespace WorkerService_FE_Response.Repository.Interfaces
 {
     public interface IResponseRepository
     {
-        public ResultReponse GetResult(NCFResponse nCFResponse, string token);
+        public Task<ResultReponse> GetResult(NCFResponse nCFResponse, string token);
         public List<NCFResponse> GetDocumentSeguimientoSAP();
     }
 }

@@ -42,6 +42,14 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<ILogRepository, LogRepository>();
 
         //services.AddHttpClient();
+        services.AddHttpClient("reportService", c =>
+        {
+            //c.BaseAddress = new Uri("https://localhost:44316");
+            c.BaseAddress = new Uri("http://localhost:9001");
+
+
+        });
+
 
         //var configuration = new ConfigurationBuilder()
         //.SetBasePath(Directory.GetCurrentDirectory())

@@ -52,13 +52,6 @@ namespace WorkerService_FE
                 }
 
 
-                //_requestRepository.GetDocumentSAP();
-
-                //_requestRepository.SendDocuement();
-
-
-                //_requestRepository.SendDocuement();
-                //_responseRepository.GetResult();
 
                 await Task.Delay(1000* int.Parse(_configuration["Servicio:Intervalo"].ToString()) , stoppingToken);
             }
