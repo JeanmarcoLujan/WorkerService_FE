@@ -210,7 +210,7 @@ namespace WorkerService_FE_Request.Repository
 
                 //var asdadasd = transaccion;
                 //SerializarYGuardarXml(transaccion, @"C:\fe\request\" + dateTime.ToString("yyyyMMdd") +"_" + str + ".xml");
-                SerializarYGuardarXml(transaccion, _configuration["Files:RouteRequest"].ToString()+ docEntry + "_" + dateTime.ToString("yyyyMMdd") +"_" + str + ".xml");
+                SerializarYGuardarXml(transaccion, _configuration["Files:RouteRequest"].ToString()+ "\\"+docEntry + "_" + dateTime.ToString("yyyyMMdd") +"_" + str + ".xml");
             }
 
             return dataTable.Rows.Count;
