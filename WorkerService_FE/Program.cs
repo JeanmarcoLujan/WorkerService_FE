@@ -36,6 +36,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         //services.AddSingleton<IAfipRepository, AfipRepository>();
         //services.AddSingleton<ILoggingRepository, LoggingRepository>();
         services.AddSingleton<IRequestRepository, RequestRepository>();
+        services.AddSingleton<IRequestNCRepository, RequestNCRepository>();
         services.AddSingleton<IResponseRepository, ResponseRepository>();
         services.AddSingleton<IOperationRepository, OperationRepository>();
         services.AddSingleton<IServicioRepository, ServicioRepository>();
