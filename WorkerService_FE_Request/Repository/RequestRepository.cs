@@ -41,7 +41,8 @@ namespace WorkerService_FE_Request.Repository
 
         public int GetDocumentSAP()
         {
-            HanaConnection selectConnection = new HanaConnection("Server=saphaargendemo:30015;UserID=B1ADMIN;Password=7SkyOne*YjllM2ZkYz;Current Schema=LOCALIZACION_RDR");
+           // HanaConnection selectConnection = new HanaConnection("Server=saphaargendemo:30015;UserID=B1ADMIN;Password=7SkyOne*YjllM2ZkYz;Current Schema=LOCALIZACION_RDR");
+            HanaConnection selectConnection = new HanaConnection(_configuration["Acceso:ConnectionStringsSAP"].ToString());
             HanaDataAdapter hanaDataAdapter = new HanaDataAdapter("CALL \"MGS_SP_GET_INVOICE\"", selectConnection);
             DataSet dataSet = new DataSet();
             hanaDataAdapter.Fill(dataSet, "DATASet");
