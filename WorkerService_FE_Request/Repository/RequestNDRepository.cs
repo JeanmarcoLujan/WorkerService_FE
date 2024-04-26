@@ -1,42 +1,40 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using Sap.Data.Hana;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 using WorkerService_FE_Entities.Repository.Interfaces;
-using WorkerService_FE_Entities.Request.NC;
 using WorkerService_FE_Entities.ServiceLayer.Document;
 using WorkerService_FE_Entities.ServiceLayer;
 using WorkerService_FE_Request.Repository.Interfaces;
 using WorkerService_FE_SL.Repository.Interfaces;
-
+using System.Collections;
+using System.Data;
+using System.IO;
+using System.Xml.Serialization;
+using Sap.Data.Hana;
+using WorkerService_FE_Entities.Request.ND;
 
 namespace WorkerService_FE_Request.Repository
 {
-    public class RequestNCRepository : IRequestNCRepository
+    public class RequestNDRepository : IRequestNDRepository
     {
         private readonly IConfiguration _configuration;
         private readonly IServicioRepository _servicioRepository;
         private readonly ILogRepository _logRepository;
-        public RequestNCRepository(IConfiguration configuration, IServicioRepository servicioRepository, ILogRepository logRepository)
+        public RequestNDRepository(IConfiguration configuration, IServicioRepository servicioRepository, ILogRepository logRepository)
         {
             _configuration = configuration;
             _servicioRepository = servicioRepository;
             _logRepository = logRepository;
         }
-
-
-        public int GetDocumentSAPNC()
+        public int GetDocumentSAPND()
         {
             HanaConnection selectConnection = new HanaConnection(_configuration["Acceso:ConnectionStringsSAP"].ToString());
-            HanaDataAdapter hanaDataAdapter = new HanaDataAdapter("CALL \"MGS_SP_GET_CREDITNOTE\"", selectConnection);
+            HanaDataAdapter hanaDataAdapter = new HanaDataAdapter("CALL \"MGS_SP_GET_DEBITNOTE\"", selectConnection);
             DataSet dataSet = new DataSet();
             hanaDataAdapter.Fill(dataSet, "DATASet");
 
@@ -44,27 +42,26 @@ namespace WorkerService_FE_Request.Repository
             string docEntry = "";
 
 
-
             foreach (var data in dataTable.AsEnumerable().Select(row => new
             {
-                DocNum = row.Field<string>("Ref"),
+                DocNum = row.Field<int>("Ref"),
                 Nombre = row.Field<string>("Type")
             }).Distinct())
             {
                 var item = data;
-                DataTable dataTable1 = dataTable.AsEnumerable().Where<DataRow>((Func<DataRow, bool>)(row => row.Field<string>("REF") == item.DocNum)).CopyToDataTable<DataRow>();
+                DataTable dataTable1 = dataTable.AsEnumerable().Where<DataRow>((Func<DataRow, bool>)(row => row.Field<int>("REF") == item.DocNum)).CopyToDataTable<DataRow>();
                 Transaction transaccion = new Transaction();
                 IEnumerator enumerator = dataTable1.Rows.GetEnumerator();
-
                 try
                 {
+                    
+
+
                     if (enumerator.MoveNext())
                     {
                         DataRow current = (DataRow)enumerator.Current;
 
                         docEntry = current["DocEntry"].ToString();
-
-
 
                         transaccion.GeneralData = new GeneralData()
                         {
@@ -80,15 +77,10 @@ namespace WorkerService_FE_Request.Repository
                                 {
                                     TipoIngreso = current["TipoIngreso"].ToString(),
                                     TipoPago = current["FormaPago"].ToString(),
-                                    LinesPerPrintedPage = Convert.ToInt32(current["LinesPerPrint"]).ToString()
+                                    LinesPerPrintedPage = current["LinesPerPrint"].ToString()
                                 }
-                                //TipoIngreso = current["TipoIngreso"].ToString(),
-                                //TipoPago = current["FormaPago"].ToString(),
-                                //LinesPerPrintedPage = current["LinesPerPrint"].ToString()
                             }
                         };
-
-
                         transaccion.Supplier = new Supplier()
                         {
                             SupplierID = current["sSupplierID"].ToString(),
@@ -123,8 +115,8 @@ namespace WorkerService_FE_Request.Repository
                                 {
                                     DOM = new DOM()
                                     {
-                                        CodigoModificacion = current["DOM.CodigoModificacion"].ToString(),
-                                        IndicadorNotaCredito = current["DOM.IndicadorNotaCredito"].ToString()
+                                        CodigoModificacion = current["CodigoModificacion"].ToString()
+                                        //IndicadorNotaCredito = current["DOM.IndicadorNotaCredito"].ToString()
                                     }
                                     
                                 }
@@ -150,15 +142,15 @@ namespace WorkerService_FE_Request.Repository
                                 Taxes = new Taxes()
                                 {
                                     TaxList = new List<Tax>()
-                  {
-                    new Tax()
-                    {
-                      Type = row["txType"].ToString(),
-                      Rate = Decimal.Parse(row["Rate"].ToString()),
-                      Base = Decimal.Parse(row["txBase"].ToString()),
-                      Amount = Decimal.Parse(row["txAmount"].ToString())
-                    }
-                  }
+                                      {
+                                        new Tax()
+                                        {
+                                          Type = row["txType"].ToString(),
+                                          Rate = Decimal.Parse(row["Rate"].ToString()),
+                                          Base = Decimal.Parse(row["txBase"].ToString()),
+                                          Amount = Decimal.Parse(row["txAmount"].ToString())
+                                        }
+                                      }
                                 }
                             };
                             transaccion.ProductList.Products.Add(product);
@@ -187,20 +179,10 @@ namespace WorkerService_FE_Request.Repository
                     if (enumerator is IDisposable disposable)
                         disposable.Dispose();
                 }
-
-
                 string str = transaccion.GeneralData.Ref.PadLeft(13, '0');
-
-                var sdfsdf = transaccion;
-
                 DateTime dateTime = DateTime.Today;
 
-
-                //var asdadasd = transaccion;
-                //SerializarYGuardarXml(transaccion, @"C:\fe\request\" + dateTime.ToString("yyyyMMdd") +"_" + str + ".xml");
-
-
-                string nomDirectorio = _configuration["Files:RouteRequest"].ToString() + "\\NC";
+                string nomDirectorio = _configuration["Files:RouteRequest"].ToString() + "\\ND";
                 if (!Directory.Exists(nomDirectorio))
                 {
                     Directory.CreateDirectory(nomDirectorio);
@@ -211,11 +193,13 @@ namespace WorkerService_FE_Request.Repository
 
 
                 SerializarYGuardarXml(transaccion, rutaCompleta);
-                //SerializarYGuardarXml(transaccion, _configuration["Files:RouteRequest"].ToString() + "\\NC\\" + docEntry + "_" + dateTime.ToString("yyyyMMdd") + "_" + str + ".xml");
+
+
             }
 
             return dataTable.Rows.Count;
         }
+
 
         public void SerializarYGuardarXml(Transaction transaccion, string rutaArchivo)
         {
@@ -231,16 +215,15 @@ namespace WorkerService_FE_Request.Repository
             }
         }
 
-        public void SendDocuementNC(string token)
+        public void SendDocuementND(string token)
         {
-            string path = _configuration["Files:RouteRequest"].ToString()+"\\NC";
-            string pathOut = _configuration["Files:RouteRequest"].ToString()+ "\\NC\\out";
+            string path = _configuration["Files:RouteRequest"].ToString() + "\\ND";
+            string pathOut = _configuration["Files:RouteRequest"].ToString() + "\\ND\\out";
 
             if (!Directory.Exists(pathOut))
             {
                 Directory.CreateDirectory(pathOut);
             }
-
 
 
             InfoRequest infoRequest = new InfoRequest();
@@ -267,11 +250,6 @@ namespace WorkerService_FE_Request.Repository
                             try
                             {
                                 HttpResponseMessage result1 = httpClient.PutAsync(requestUri, (HttpContent)content2).Result;
-                                //ParamsOfResult oParamsOfResult = new ParamsOfResult();
-                                //string xml = System.IO.File.ReadAllText(oPath);
-                                //XmlDocument xmlDocument = new XmlDocument();
-                                //xmlDocument.LoadXml(xml);
-                                //oParamsOfResult.DocEntry = BusinessOneServices.GetDocEntry(xmlDocument);
                                 DocBase docBase = new DocBase();
                                 if (result1.IsSuccessStatusCode)
                                 {
@@ -284,17 +262,16 @@ namespace WorkerService_FE_Request.Repository
 
                                     string json = JsonConvert.SerializeObject(docBase);
                                     infoRequest.Doc = json;
-                                    infoRequest.Route = "CreditNotes(" + docE[0] + ")";
+                                    infoRequest.Route = "Invoices(" + docE[0] + ")";
 
                                     _servicioRepository.UpdateInfo(infoRequest);
-                                    _logRepository.Log("Documento NC " + docE[0] + " Se ha enviado con éxito", 1);
+                                    _logRepository.Log("Documento ND " + docE[0] + " Se ha enviado con éxito", 1);
 
                                     if (File.Exists(Path.Combine(pathOut, fileName)))
                                     {
                                         File.Delete(Path.Combine(pathOut, fileName));
                                     }
                                     System.IO.File.Move(Path.Combine(path, fileName), Path.Combine(pathOut, fileName));
-                                    //System.IO.File.Move(path + fileName, pathOut + fileName);
                                 }
                                 else
                                 {
@@ -306,17 +283,16 @@ namespace WorkerService_FE_Request.Repository
                                     }
                                     System.IO.File.Move(Path.Combine(path, fileName), Path.Combine(pathOut, fileName));
 
-
                                     string[] docE = fileName.Split('_');
 
                                     docBase.U_MGS_FE_Estado = "DE";
                                     docBase.U_MGS_FE_RespEnvio = "Se presento error al enviar";
 
-                                    _logRepository.Log("Documento NC " + docE[0] + " Se presento error al enviar", 1);
+                                    _logRepository.Log("Documento ND " + docE[0] + " Se presento error al enviar", 1);
 
                                     string json = JsonConvert.SerializeObject(docBase);
                                     infoRequest.Doc = json;
-                                    infoRequest.Route = "CreditNotes(" + docE[0] + ")";
+                                    infoRequest.Route = "Invoices(" + docE[0] + ")";
 
                                     _servicioRepository.UpdateInfo(infoRequest);
                                 }
@@ -328,6 +304,7 @@ namespace WorkerService_FE_Request.Repository
                     }
                 }
             }
+
         }
     }
 }

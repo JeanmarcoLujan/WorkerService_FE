@@ -46,7 +46,7 @@ namespace WorkerService_FE_SL.Repository
             return rs;
         }
 
-        public async Task<GeneralResponseDTO> UpdateInfo(InfoRequest infoRequest)
+        public  GeneralResponseDTO UpdateInfo(InfoRequest infoRequest)
         {
             string route = _configuration["Acceso:ServiceLayerUrl"].ToString() + infoRequest.Route;
 

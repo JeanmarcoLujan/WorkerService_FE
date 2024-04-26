@@ -286,13 +286,29 @@ namespace WorkerService_FE_Request.Repository
                                     //oParamsOfResult.Estado = "DS";
                                     //oParamsOfResult.ResultDscrp = "Envío Correcto";
                                     //BusinessOneServices.SetResultInvoice(oParamsOfResult);
-                                    System.IO.File.Move(path + fileName, path + "out\\" + fileName);
+                                    //System.IO.File.Move(path + fileName, path + "out\\" + fileName);
+
+                                    var ASDASD = Path.Combine(path, fileName);
+                                    var ASDASD1 = Path.Combine(path + "out\\", fileName);
+
+
+                                    if (File.Exists(Path.Combine(path + "\\out", fileName)))
+                                    {
+                                        File.Delete(Path.Combine(path + "\\out", fileName));
+                                    }
+
+                                    System.IO.File.Move(Path.Combine(path, fileName), Path.Combine(path + "\\out", fileName));
                                 }
                                 else
                                 {
                                     string result3 = result1.Content.ReadAsStringAsync().Result;
                                     //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\Error\\" + fileName);
-                                    System.IO.File.Move(path + fileName, path + "out\\" + fileName);
+                                    // System.IO.File.Move(path + fileName, path + "out\\" + fileName);
+                                    if (File.Exists(Path.Combine(path + "\\out", fileName)))
+                                    {
+                                        File.Delete(Path.Combine(path + "\\out", fileName));
+                                    }
+                                    System.IO.File.Move(Path.Combine(path, fileName), Path.Combine(path + "\\out", fileName));
                                     //oParamsOfResult.Estado = "DE";
                                     //oParamsOfResult.ResultDscrp = result3;
                                     //BusinessOneServices.SetResultInvoice(oParamsOfResult);

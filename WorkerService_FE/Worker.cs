@@ -11,6 +11,7 @@ namespace WorkerService_FE
         private readonly ILogger<Worker> _logger;
         private readonly IRequestRepository _requestRepository;
         private readonly IRequestNCRepository _requestNCRepository;
+        private readonly IRequestNDRepository _requestNDRepository;
         private readonly IResponseRepository _responseRepository;
         private readonly IServicioRepository _servicioRepository;
         private readonly IConfiguration _configuration;
@@ -19,13 +20,15 @@ namespace WorkerService_FE
             ILogger<Worker> logger, 
             IRequestRepository requestRepository,
             IRequestNCRepository requestNCRepository,
-            IResponseRepository responseRepository, 
+            IRequestNDRepository requestNDRepository,
+        IResponseRepository responseRepository, 
             IServicioRepository servicioRepository, 
             IConfiguration configuration)
         {
             _logger = logger;
             _requestRepository = requestRepository;
             _requestNCRepository = requestNCRepository;
+            _requestNDRepository = requestNDRepository;
             _responseRepository = responseRepository;
             _servicioRepository = servicioRepository;
             _configuration = configuration;
@@ -42,18 +45,23 @@ namespace WorkerService_FE
                 if (token != "")
                 {
 
-                    /*
+
                     //FACTURA DE DEUDORES
-                    int docs = _requestRepository.GetDocumentSAP();
-                    if (docs > 0)
-                        _requestRepository.SendDocuement(token);
-                    */
+                    //int docs = _requestRepository.GetDocumentSAP();
+                    //if (docs > 0)
+                    //    _requestRepository.SendDocuement(token);
 
 
-                    //NOTAS DE CREDITO
-                    int docsNC = _requestNCRepository.GetDocumentSAPNC();
-                    if (docsNC > 0)
-                        _requestNCRepository.SendDocuementNC(token);
+
+                    ////NOTAS DE CREDITO
+                    //int docsNC = _requestNCRepository.GetDocumentSAPNC();
+                    //if (docsNC > 0)
+                    //    _requestNCRepository.SendDocuementNC(token);
+
+                    ////NOTAS DE DEBITO
+                    int docsND = _requestNDRepository.GetDocumentSAPND();
+                    if (docsND > 0)
+                        _requestNDRepository.SendDocuementND(token);
 
 
 

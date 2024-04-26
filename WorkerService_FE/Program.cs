@@ -31,12 +31,9 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddHostedService<Worker>();
         //services.AddSingleton<IServiceLayerRepository, ServiceLayerRepository>();
 
-        //services.AddSingleton<ISAPRepository, SAPRepository>(); //ISlRepository
-        //services.AddSingleton<ISlRepository, SlRepository>();
-        //services.AddSingleton<IAfipRepository, AfipRepository>();
-        //services.AddSingleton<ILoggingRepository, LoggingRepository>();
         services.AddSingleton<IRequestRepository, RequestRepository>();
         services.AddSingleton<IRequestNCRepository, RequestNCRepository>();
+        services.AddSingleton<IRequestNDRepository, RequestNDRepository>(); 
         services.AddSingleton<IResponseRepository, ResponseRepository>();
         services.AddSingleton<IOperationRepository, OperationRepository>();
         services.AddSingleton<IServicioRepository, ServicioRepository>();

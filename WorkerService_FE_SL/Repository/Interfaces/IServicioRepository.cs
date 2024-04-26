@@ -11,6 +11,6 @@ namespace WorkerService_FE_SL.Repository.Interfaces
     {
         public Task<string> SLLogin();
         //public Task<GeneralResponseDTO> PostInfo(InfoRequest infoRequest);
-        public Task<GeneralResponseDTO> UpdateInfo(InfoRequest infoRequest);
+        public GeneralResponseDTO UpdateInfo(InfoRequest infoRequest);
     }
 }

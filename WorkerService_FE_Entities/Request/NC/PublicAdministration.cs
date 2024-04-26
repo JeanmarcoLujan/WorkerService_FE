@@ -6,23 +6,27 @@
 
 using System.Xml.Serialization;
 
+
 namespace WorkerService_FE_Entities.Request.NC
 {
   public class PublicAdministration
   {
-    [XmlAttribute("TipoIngreso")]
-    public string TipoIngreso { get; set; }
+        [XmlElement("DOM")]
+        public DOM DOM { get; set; }
 
-    [XmlAttribute("TipoPago")]
-    public string TipoPago { get; set; }
+        //[XmlAttribute("TipoIngreso")]
+        //public string TipoIngreso { get; set; }
 
-    [XmlAttribute("LinesPerPrintedPage")]
-    public string LinesPerPrintedPage { get; set; }
+        //[XmlAttribute("TipoPago")]
+        //public string TipoPago { get; set; }
 
-    [XmlAttribute("CodigoModificacion")]
-    public string CodigoModificacion { get; set; }
+        //[XmlAttribute("LinesPerPrintedPage")]
+        //public string LinesPerPrintedPage { get; set; }
 
-    [XmlAttribute("IndicadorNotaCredito")]
-    public string IndicadorNotaCredito { get; set; }
-  }
+        //[XmlAttribute("CodigoModificacion")]
+        //public string CodigoModificacion { get; set; }
+
+        //[XmlAttribute("IndicadorNotaCredito")]
+        //public string IndicadorNotaCredito { get; set; }
+    }
 }
