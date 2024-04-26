@@ -1,0 +1,11 @@
+﻿CREATE PROCEDURE MGS_SP_FE(	IN vTipo NVARCHAR(20), 
+														IN vParam1 NVARCHAR(50), IN vParam2 NVARCHAR(50), IN vParam3 NVARCHAR(50), IN vParam4 NVARCHAR(50))
+AS BEGIN
+	
+	IF vTipo = 'GET_DOCS_SEGUI' THEN 
+		SELECT "DocEntry",  "U_ACS_NCF" AS "NCF" FROM OINV WHERE "U_MGS_FE_Estado"='DS' AND "U_ACS_NCF" IS NOT NULL AND "DocEntry">219
+		ORDER  BY "TaxDate";
+	ELSEIF vTipo = 'CBO_MOVIL' THEN
+		SELECT "insID" AS "Code", "internalSN" AS "Name" FROM OINS; 
+	END IF;
+END;

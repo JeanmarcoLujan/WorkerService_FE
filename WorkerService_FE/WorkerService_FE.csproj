@@ -18,8 +18,4 @@
     <ProjectReference Include="..\WorkerService_FE_Response\WorkerService_FE_Response.csproj" />
     <ProjectReference Include="..\WorkerService_FE_SL\WorkerService_FE_SL.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="SP\" />
-  </ItemGroup>
 </Project>
