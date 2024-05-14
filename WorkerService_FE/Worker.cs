@@ -54,14 +54,14 @@ namespace WorkerService_FE
 
 
                     ////NOTAS DE CREDITO
-                    //int docsNC = _requestNCRepository.GetDocumentSAPNC();
-                    //if (docsNC > 0)
-                    //    _requestNCRepository.SendDocuementNC(token);
+                    int docsNC = _requestNCRepository.GetDocumentSAPNC();
+                    if (docsNC > 0)
+                        _requestNCRepository.SendDocuementNC(token);
 
                     ////NOTAS DE DEBITO
-                    int docsND = _requestNDRepository.GetDocumentSAPND();
-                    if (docsND > 0)
-                        _requestNDRepository.SendDocuementND(token);
+                    //int docsND = _requestNDRepository.GetDocumentSAPND();
+                    //if (docsND > 0)
+                    //    _requestNDRepository.SendDocuementND(token);
 
 
 

@@ -12,8 +12,8 @@ namespace WorkerService_FE_Entities.Request.NC
         [XmlAttribute("TipoIngreso")]
         public string TipoIngreso { get; set; }
 
-        [XmlAttribute("TipoPago")]
-        public string TipoPago { get; set; }
+        //[XmlAttribute("TipoPago")]
+        //public string TipoPago { get; set; }
 
         [XmlAttribute("LinesPerPrintedPage")]
         public string LinesPerPrintedPage { get; set; }

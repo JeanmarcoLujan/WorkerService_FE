@@ -66,6 +66,8 @@ namespace WorkerService_FE_Response.Repository
                         NCFResponse nCF = new NCFResponse();
                         nCF.DocEntry = reader.GetString(reader.GetOrdinal("DocEntry")).ToString();
                         nCF.NCF = reader.GetString(reader.GetOrdinal("NCF")).ToString();
+                        nCF.DocSubType = reader.GetString(reader.GetOrdinal("DocSubType")).ToString();
+                        nCF.ObjType = reader.GetString(reader.GetOrdinal("ObjType")).ToString();
                         result.Add(nCF);
                     }
 
@@ -108,22 +110,28 @@ namespace WorkerService_FE_Response.Repository
                 Directory.CreateDirectory(ruta);
             }
 
-           //var asasd = GenerateQr();
-
-            var asdasd = "asdasd";
             using (HttpClient httpClient = new HttpClient())
             {
                 string base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(str1 + ":" + str2));
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64String);
                 StringContent content2 = new StringContent(content1, Encoding.UTF8, "application/xml");
+
+                string documentName = "";
+                switch (nCFResponse.ObjType)
+                {
+                    case "13":
+                        documentName = nCFResponse.DocSubType == "--" ? "Factura" : "NotaDebito";
+                        break;
+                    case "14":
+                        documentName = "NotaCredito";
+                        break;
+
+                }
+
+
                 try
                 {
                     HttpResponseMessage result1 = httpClient.GetAsync(requestUri).Result;
-                    //ParamsOfResult oParamsOfResult = new ParamsOfResult();
-                    //string xml = System.IO.File.ReadAllText(oPath);
-                    //XmlDocument xmlDocument = new XmlDocument();
-                    //xmlDocument.LoadXml(xml);
-                    //oParamsOfResult.DocEntry = BusinessOneServices.GetDocEntry(xmlDocument);
                     DocBaseResponse docBase = new DocBaseResponse();
                     infoRequest.Token = token;
 
@@ -137,12 +145,12 @@ namespace WorkerService_FE_Response.Repository
                         docBase.U_MGS_FE_MensajeDGII = resultReponse.DGII.MensajeDGII;
                         bool result_v1 = await GenerateQr(nCFResponse.DocEntry.ToString(), resultReponse.DGII.QR, "1");
                         if (result_v1)
-                            docBase.U_MGS_FE_PDF = ruta + "\\Factura_v1_" + nCFResponse.DocEntry.ToString() + ".pdf"; // resultReponse.DGII.PDF;
+                            docBase.U_MGS_FE_PDF = ruta + "\\"+ documentName +"_v1_" + nCFResponse.DocEntry.ToString() + ".pdf"; // resultReponse.DGII.PDF;
                         else
                             docBase.U_MGS_FE_PDF = "";
                         bool result_v2 = await GenerateQr(nCFResponse.DocEntry.ToString(), resultReponse.DGII.QR, "2");
                         if (result_v2)
-                            docBase.U_MGS_FE_PDF2 = ruta + "\\Factura_v2_" + nCFResponse.DocEntry.ToString() + ".pdf"; // resultReponse.DGII.PDF;
+                            docBase.U_MGS_FE_PDF2 = ruta + "\\"+documentName+"_v2_" + nCFResponse.DocEntry.ToString() + ".pdf"; // resultReponse.DGII.PDF;
                         else
                             docBase.U_MGS_FE_PDF2 = "";
 
@@ -153,26 +161,22 @@ namespace WorkerService_FE_Response.Repository
 
                         string json = JsonConvert.SerializeObject(docBase);
                         infoRequest.Doc = json;
-                        infoRequest.Route = "Invoices(" + nCFResponse.DocEntry + ")";
+                        if(nCFResponse.ObjType == "13")
+                            infoRequest.Route = "Invoices(" + nCFResponse.DocEntry + ")";
+                        else
+                            infoRequest.Route = "CreditNotes(" + nCFResponse.DocEntry + ")";
 
                         _servicioRepository.UpdateInfo(infoRequest);
-                        _logRepository.Log("Documento " + nCFResponse.DocEntry + " Se ha obtenido respuesta con éxito", 2);
+                        _logRepository.Log(documentName + " " + nCFResponse.DocEntry + " Se ha obtenido respuesta con éxito", 2);
                         
-                        //oParamsOfResult.Estado = "DS";
-                        //oParamsOfResult.ResultDscrp = "Envío Correcto";
-                        //BusinessOneServices.SetResultInvoice(oParamsOfResult);
-                        //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\" + fileName);
                     }
                     else
                     {
                         //GenerateQr();
 
                         string result3 = result1.Content.ReadAsStringAsync().Result;
-                        _logRepository.Log("Documento " + nCFResponse.DocEntry + ", con NCF: " + nCFResponse.NCF + ", no se ha encontrado en voxel", 2);
-                        //System.IO.File.Move("C:\\MGS - Facturación Electrónica\\xml\\" + fileName, "C:\\MGS - Facturación Electrónica\\xml\\out\\Error\\" + fileName);
-                        //oParamsOfResult.Estado = "DE";
-                        //oParamsOfResult.ResultDscrp = result3;
-                        //BusinessOneServices.SetResultInvoice(oParamsOfResult);
+                        _logRepository.Log(documentName + " " + nCFResponse.DocEntry + ", con NCF: " + nCFResponse.NCF + ", no se ha encontrado en voxel", 2);
+
                     }
                 }
                 catch (Exception ex)

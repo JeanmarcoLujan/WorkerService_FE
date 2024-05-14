@@ -10,5 +10,7 @@ namespace WorkerService_FE_Entities.ServiceLayer.Document
     {
         public string DocEntry { get; set; }
         public string NCF { get; set; }
+        public string DocSubType { get; set; }
+        public string ObjType { get; set; }
     }
 }

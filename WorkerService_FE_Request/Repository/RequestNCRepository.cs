@@ -79,7 +79,7 @@ namespace WorkerService_FE_Request.Repository
                                 DOM = new DOM()
                                 {
                                     TipoIngreso = current["TipoIngreso"].ToString(),
-                                    TipoPago = current["FormaPago"].ToString(),
+                                    //TipoPago = current["FormaPago"].ToString(),
                                     LinesPerPrintedPage = Convert.ToInt32(current["LinesPerPrint"]).ToString()
                                 }
                                 //TipoIngreso = current["TipoIngreso"].ToString(),
@@ -105,8 +105,8 @@ namespace WorkerService_FE_Request.Repository
                         {
                             CIF = current["cCIF"].ToString(),
                             Company = current["cCompany"].ToString(),
-                            Email = current["cEmail"].ToString(),
-                            Address = current["cAddress"].ToString(),
+                            //Email = current["cEmail"].ToString(),
+                            //Address = current["cAddress"].ToString(),
                             City = current["cCity"].ToString(),
                             PC = current["cPC"].ToString(),
                             Province = current["Province"].ToString(),
