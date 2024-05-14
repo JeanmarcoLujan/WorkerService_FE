@@ -27,6 +27,8 @@ namespace WorkerService_FE_Entities.Request.ND
 
     [XmlAttribute("NCF")]
     public string NCF { get; set; }
+    [XmlAttribute("NCFExpirationDate")]
+    public string NCFExpirationDate { get; set; }
 
     public PublicAdministration PublicAdministration { get; set; }
   }

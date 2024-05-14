@@ -47,9 +47,9 @@ namespace WorkerService_FE
 
 
                     //FACTURA DE DEUDORES
-                    //int docs = _requestRepository.GetDocumentSAP();
-                    //if (docs > 0)
-                    //    _requestRepository.SendDocuement(token);
+                    int docs = _requestRepository.GetDocumentSAP();
+                    if (docs > 0)
+                        _requestRepository.SendDocuement(token);
 
 
 
@@ -59,9 +59,9 @@ namespace WorkerService_FE
                         _requestNCRepository.SendDocuementNC(token);
 
                     ////NOTAS DE DEBITO
-                    //int docsND = _requestNDRepository.GetDocumentSAPND();
-                    //if (docsND > 0)
-                    //    _requestNDRepository.SendDocuementND(token);
+                    int docsND = _requestNDRepository.GetDocumentSAPND();
+                    if (docsND > 0)
+                        _requestNDRepository.SendDocuementND(token);
 
 
 

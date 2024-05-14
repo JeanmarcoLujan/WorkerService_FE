@@ -61,6 +61,8 @@ namespace WorkerService_FE_Request.Repository
                     {
                         DataRow current = (DataRow)enumerator.Current;
 
+                        var c5 = Convert.ToDateTime(current["NCFExpirationDate"]).ToString("yyyy-MM-dd");
+
                         docEntry = current["DocEntry"].ToString();
 
                         transaccion.GeneralData = new GeneralData()
@@ -71,6 +73,7 @@ namespace WorkerService_FE_Request.Repository
                             Currency = current["Currency"].ToString(),
                             TaxIncluded = Convert.ToBoolean(current["TaxIncluded"]),
                             NCF = current["NCF"].ToString(),
+                            NCFExpirationDate = "2025-01-01", // Convert.ToDateTime(current["NCFExpirationDate"]).ToString("yyyy-MM-dd"),
                             PublicAdministration = new PublicAdministration()
                             {
                                 DOM = new DOM()
