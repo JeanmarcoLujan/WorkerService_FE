@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WorkerService_FE_Entities.Repository.Interfaces;
 using WorkerService_FE_Entities.ServiceLayer;
 using WorkerService_FE_SL.Repository.Interfaces;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -16,10 +17,12 @@ namespace WorkerService_FE_SL.Repository
     {
         private readonly IOperationRepository _operationRepository;
         private readonly IConfiguration _configuration;
-        public ServicioRepository(IOperationRepository operationRepository, IConfiguration configuration)
+        private readonly ILogRepository _logRepository;
+        public ServicioRepository(IOperationRepository operationRepository, IConfiguration configuration, ILogRepository logRepositor)
         {
             _operationRepository = operationRepository;
             _configuration = configuration;
+            _logRepository = logRepositor;
         }
 
         public async Task<string> SLLogin()
@@ -40,7 +43,7 @@ namespace WorkerService_FE_SL.Repository
             {
 
                 rs = "";
-                //_logService.Log("Error al loguearse en SL :" + e.Message.ToString());
+                _logRepository.Log("Error al loguearse en SL :" + e.Message.ToString(), 3);
             }
 
             return rs;
@@ -71,7 +74,7 @@ namespace WorkerService_FE_SL.Repository
 
                 documentResult.Registered = false;
                 documentResult.Message = "Ocurrio un error";
-                //_logService.Log("Procesar la informacion SL :" + documentResult.Message);
+                _logRepository.Log("Procesar la informacion SL :" + documentResult.Message, 3);
             }
 
 

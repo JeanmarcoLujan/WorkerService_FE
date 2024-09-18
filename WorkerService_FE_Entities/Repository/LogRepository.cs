@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WorkerService_FE_Entities.Repository.Interfaces;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WorkerService_FE_Entities.Repository
 {
@@ -17,7 +18,21 @@ namespace WorkerService_FE_Entities.Repository
         }
         public void Log(string message, int flujo)
         {
-            string route = flujo ==1 ? _configuration["Log:RouteRequest"] : _configuration["Log:RouteResponse"];  // ConfigurationManager.AppSettings["URL_AFIP_Log"];
+            string route = "";
+
+            switch (flujo)
+            {
+                case 1:
+                    route = _configuration["Log:RouteRequest"];
+                    break;
+                case 2:
+                    route = _configuration["Log:RouteResponse"];
+                    break;
+                default:
+                    route = _configuration["Log:RouteLog"];
+                    break;
+            }
+             
 
             if (!Directory.Exists(route))
             {

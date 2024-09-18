@@ -34,7 +34,7 @@ namespace WorkerService_FE_SL.Repository
                 //string data = "{    \"CompanyDB\": \"" + "LOCALIZACION_RDR" + "\",  \"UserName\": \"" + "manager" + "\", \"Password\": \"" + "1234" + "\", \"Language\":\"23\"}";
                 string data = "{    \"CompanyDB\": \"" + _configuration["Acceso:DatabaseSAP"].ToString() + "\",  \"UserName\": \"" + _configuration["Acceso:UserSAP"].ToString() + "\", \"Password\": \"" + _configuration["Acceso:PassSAP"].ToString() + "\", \"Language\":\"23\"}";
 
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create(@"https://saphaargendemo:50000/b1s/v2/" + "Login");
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(@_configuration["Acceso:ServiceLayerUrl"].ToString() + "Login");
                 httpWebRequest.ContentType = "application/json";
                 httpWebRequest.Method = "POST";
                 /*
@@ -69,14 +69,14 @@ namespace WorkerService_FE_SL.Repository
                 httpWebGetRequest.Method = "PATCH";
                 httpWebGetRequest.KeepAlive = true;
                 httpWebGetRequest.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
-                httpWebGetRequest.Headers.Add("B1S-WCFCompatible", "true");
-                httpWebGetRequest.Headers.Add("B1S-MetadataWithoutSession", "true");
+                //httpWebGetRequest.Headers.Add("B1S-WCFCompatible", "true");
+                //httpWebGetRequest.Headers.Add("B1S-MetadataWithoutSession", "true");
                 httpWebGetRequest.Accept = "*/*";
                 httpWebGetRequest.ServicePoint.Expect100Continue = false;
                 httpWebGetRequest.Headers.Add("Accept-Encoding", "gzip, deflate, br");
                 httpWebGetRequest.AutomaticDecompression = DecompressionMethods.GZip;
                 CookieContainer cookies = new CookieContainer();
-                cookies.Add(new Cookie("B1SESSION", obj.ToString()) { Domain = "saphaargendemo" });
+                cookies.Add(new Cookie("B1SESSION", obj.ToString()) { Domain = _configuration["Acceso:ServiceLayerDom"].ToString() });
                 //cookies.Add(new Cookie("ROUTEID", ".node1") { Domain = _configuration["ServiceLayer:ip_value"].ToString() });
                 httpWebGetRequest.CookieContainer = cookies;
 

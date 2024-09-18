@@ -34,6 +34,12 @@ namespace WorkerService_FE
             _configuration = configuration;
         }
 
+        /*
+         * 
+         * SC CREATE "MGSFE AFOODS Ts" binpath=C:\\fe\bin\WorkerService_FE.exe
+         * SC DELETE "MGS FE AFOODS Test"
+         */
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
